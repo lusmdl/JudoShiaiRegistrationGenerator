@@ -2,7 +2,7 @@
 
 Willkommen zur Dokumentation des **JudoShiaiMeldungenGenerators**, einer Software, die Kämpferdaten aus mehreren CSV-Dateien zusammenführt und organisiert. Dieses Dokument beschreibt die Entwicklung, Funktionsweise, Installation und Nutzung der Software sowie die Möglichkeiten zur Zusammenarbeit über GitHub.
 
-Möchten sie mehr über die Handhabung für die Meldungsdateien erfahren schauen sie auf unser [WIKI](https://github.com/lusmdl/JudoShiaiRegistrationGenerator/wiki)
+Möchten sie mehr über die Handhabung und Nutzung der Software für die Meldungsdateien erfahren schauen sie auf unser [WIKI](https://github.com/lusmdl/JudoShiaiRegistrationGenerator/wiki)
 
 ---
 
@@ -21,8 +21,7 @@ Der **JudoShiaiMeldungenGenerator** wurde in **C++20** entwickelt und verwendet 
    - Ergänzt eine **`file_id`**, um die Herkunft der Daten (Eingabedatei) zu kennzeichnen.
 
 3. **Zusätzliche Datenverarbeitung**:
-   - Liest und verarbeitet spezifische Kämpferattribute wie Name, Verein, Gewicht und Graduierung.
-   - Unterstützt Zwischenstufen in den Graduierungen (z. B. Gelb-Orange).
+   - Liest und verarbeitet spezifische Kämpferattribute.
 
 4. **Benutzerfreundlicher CSV-Export**:
    - Exportiert die zusammengeführten Daten in einer gut strukturierten Datei mit allen erforderlichen Spalten.
@@ -35,8 +34,6 @@ Um den **JudoShiaiMeldungenGenerator** nutzen zu können, benötigen Sie:
 
 1. **Systemanforderungen**:
    - Betriebssystem: Windows 10 oder höher.
-   - Arbeitsspeicher: Mindestens 4 GB RAM.
-   - Speicherplatz: Mindestens 100 MB verfügbarer Speicher.
 
 2. **Entwicklungsumgebung**:
    - **Visual Studio Community 2022** (kostenlos erhältlich).
@@ -48,6 +45,8 @@ Um den **JudoShiaiMeldungenGenerator** nutzen zu können, benötigen Sie:
 ---
 
 ## Installation und Einrichtung
+
+Eine Kompilierte Anwendung liegt in einer .zip Datei unter dem Ordner `\AnwendungLiegtHier`. Sie können die Anwendung aber auch selbst kompilieren.
 
 ### 1. Visual Studio Community 2022 installieren
 Falls noch nicht installiert:
@@ -65,40 +64,6 @@ Falls noch nicht installiert:
    - **Rechtsklick auf das Projekt → Eigenschaften → Konfigurationseigenschaften → C/C++ → Sprachstandard → ISO C++20**.
 3. Wählen Sie oben die Option **„Release“** oder **„Debug“**, je nach Bedarf.
 4. Klicken Sie auf **„Erstellen“** oder drücken Sie **Strg + Umschalt + B**, um das Projekt zu kompilieren.
-
----
-
-## Nutzung der Software
-
-1. **Eingabedateien vorbereiten**:
-   - Stellen Sie sicher, dass sich alle **`Meldungen*.csv`**-Dateien im selben Verzeichnis wie die ausführbare Datei befinden.
-   - Die Dateien müssen die korrekten Spalten enthalten (siehe [Spaltenbeschreibung](#spaltenbeschreibung)).
-
-2. **Programm starten**:
-   - Führen Sie die generierte **`JudoShiaiMeldungenGenerator.exe`** aus.
-
-3. **Ausgabedatei prüfen**:
-   - Nach der Ausführung wird eine konsolidierte Datei namens **`Teilnehmerliste.csv`** erstellt, die alle Kämpferdaten enthält.
-
----
-
-## Spaltenbeschreibung
-
-Die Software erwartet folgende Spalten in den Eingabedateien:
-
-| **Spalte**       | **Beschreibung**                          | **Beispiel**                     |
-|-------------------|------------------------------------------|----------------------------------|
-| **Name**          | Nachname des Kämpfers                   | `Meidel`                        |
-| **Vorname**       | Vorname des Kämpfers                    | `Louis`                         |
-| **Geburtsjahr**   | Jahr der Geburt des Kämpfers            | `2000`                          |
-| **Graduierung**   | Gürtelgraduierung (z. B. `1k`, `2d`)    | `1k`                            |
-| **Verein**        | Name des Vereins                        | `Judo Club Obernburg`           |
-| **Land**          | ISO 3166-1 Alpha-3 Code des Landes      | `GER`                           |
-| **Gewicht**       | Gewicht des Kämpfers in Kilogramm       | `73`                            |
-| **Geschlecht**    | Geschlecht des Kämpfers                 | `m`                             |
-| **Kommentar**     | Zusätzliche Bemerkungen                 | `Benötigt keine Übernachtung`   |
-
----
 
 ## Software-Entwicklungsdetails
 
