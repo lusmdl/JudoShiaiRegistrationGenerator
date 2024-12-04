@@ -313,8 +313,8 @@ int main() {
 
     std::cout << "Was wollen Sie tun?\n";
     SetConsoleColor(C_OPT);
-    std::cout << " -'1' Vorhandene Meldungen*.csv-Dateien aus dem Verzeichnis auslesen und zusammenfassen.\n";
-    std::cout << " -'2' Eine neue Meldungen*.csv-Datei hinzufuegen.";
+    std::cout << " -'1'\t= Vorhandene Meldungen*.csv-Dateien aus dem Verzeichnis auslesen und zusammenfassen.\n";
+    std::cout << " -'2'\t= Eine neue Meldungen*.csv-Datei hinzufuegen.";
     SetConsoleColor();
 
 
