@@ -142,4 +142,4 @@ Die Software erwartet folgende Spalten in den Eingabedateien:
 
 Die Software ist robust, modular und benutzerfreundlich gestaltet. Mit Visual Studio Community 2022 und GitHub als Tools ist eine einfache Installation, Nutzung und Weiterentwicklung garantiert.
 
-Für Fragen oder Verbesserungsvorschläge wenden Sie sich bitte an das Entwicklungsteam oder erstellen Sie ein Issue im GitHub-Repository. Viel Erfolg bei der Nutzung des **JudoShiaiMeldungenGenerators**!
+Für Fragen oder Verbesserungsvorschläge wenden Sie sich bitte an das Entwicklungsteam oder erstellen Sie ein [Issue](https://github.com/lusmdl/JudoShiaiRegistrationGenerator/issues/new) im GitHub-Repository. Viel Erfolg bei der Nutzung des **JudoShiaiMeldungenGenerators**!
