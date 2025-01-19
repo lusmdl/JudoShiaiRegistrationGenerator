@@ -70,35 +70,36 @@ void printUser() {
     SetConsoleColor(enum_ccolor::WHITE);
 }
 
+char detectDelimiter(const std::string& line) {
+    if (line.find(',') != std::string::npos) return ',';
+    if (line.find(';') != std::string::npos) return ';';
+    return '\0';
+}
+
 // Funktion zum Parsen einer Zeile
-Teilnehmer parseLine(const std::string& line) {
+Teilnehmer parseLine(const std::string& line, char delimiter) {
     Teilnehmer t;
     std::istringstream stream(line);
     std::string token;
 
-    // Felder aus der CSV-Zeile extrahieren
-    std::getline(stream, t.name, DELIMITER);
-
-    std::getline(stream, t.vorname, DELIMITER);
-
-    std::getline(stream, token, DELIMITER);
+    std::getline(stream, t.name, delimiter);
+    std::getline(stream, t.vorname, delimiter);
+    std::getline(stream, token, delimiter);
     t.geburtsjahr = std::stoi(token);
 
-    std::getline(stream, t.graduierung, DELIMITER);
+    std::getline(stream, t.graduierung, delimiter);
+    std::getline(stream, t.verein, delimiter);
+    std::getline(stream, t.land, delimiter);
+    std::getline(stream, t.gewicht, delimiter);
 
-    std::getline(stream, t.verein, DELIMITER);
-
-    std::getline(stream, t.land, DELIMITER);
-
-    std::getline(stream, t.gewicht, DELIMITER);
-
-    std::getline(stream, token, DELIMITER);
+    std::getline(stream, token, delimiter);
     t.geschlecht = token.empty() ? '\0' : token[0];
 
-    std::getline(stream, t.kommentar, DELIMITER);
+    std::getline(stream, t.kommentar, delimiter);
 
     return t;
 }
+
 
 // CSV-Datei einlesen und Daten speichern
 std::vector<Teilnehmer> readCSVFile(const std::string& filename) {
@@ -111,14 +112,20 @@ std::vector<Teilnehmer> readCSVFile(const std::string& filename) {
     }
 
     std::string line;
-    // Header-Zeile ueberspringen
-    if (!std::getline(file, line)) {
-        return teilnehmer;
+    char delimiter = '\0';
+
+    // Header-Zeile lesen und Delimiter erkennen
+    if (std::getline(file, line)) {
+        delimiter = detectDelimiter(line);
+        if (delimiter == '\0') {
+            std::cerr << "Kein gültiger Delimiter in der Datei gefunden: " << filename << '\n';
+            return teilnehmer;
+        }
     }
 
     // Zeilen einlesen und parsen
     while (std::getline(file, line)) {
-        teilnehmer.push_back(parseLine(line));
+        teilnehmer.push_back(parseLine(line, delimiter));
     }
 
     file.close();
