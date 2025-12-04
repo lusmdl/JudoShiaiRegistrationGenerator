@@ -14,15 +14,11 @@
 using json = nlohmann::json;
 
 #define DELIMITER ',' // Delimiter als Makro
-#define INPUT_A_HEADER "Name,Vorname,Geburtsjahr,Graduierung,Verein,Land,Kategorie,Geschlecht,Kommentar"
-#define TEILNEHMERLISTE_HEADER "Name,Vorname,Geburtsjahr,Graduierung,Verein,Land,Kategorie,ID,file_ID,Geschlecht,Kommentar"
-
-#define CONFIG_FILE_NAME "config.json"
-
-// Input Datei Namen
 #define INPUT_ENDING ".csv"
 #define INPUT_A "Meldungen_"
-#define INPUT_B "EasyMeldung_"
+#define INPUT_A_HEADER "Name,Vorname,Geburtsjahr,Graduierung,Verein,Land,Kategorie,Geschlecht,Kommentar"
+#define TEILNEHMERLISTE_HEADER "Name,Vorname,Geburtsjahr,Graduierung,Verein,Land,Kategorie,ID,file_ID,Geschlecht,Kommentar"
+#define CONFIG_FILE_NAME "config.json"
 
 // kürzel für klassen
 #define MIN_KLASSE "-0"
@@ -30,22 +26,9 @@ using json = nlohmann::json;
 #define W 'w'
 #define M 'm'
 
-#define KIDS_KLASSE_1 "U9"
-#define KIDS_ALTER_1 8
-#define KIDS_KLASSE_2 "U11"
-#define KIDS_ALTER_2 10
-#define KIDS_KLASSE_3 "U13"
-#define KIDS_ALTER_3 12
-#define KIDS_KLASSE_4 "U15"
-#define KIDS_ALTER_4 14
-#define KIDS_KLASSE_5 "U18"
-#define KIDS_ALTER_5 17
-#define KIDS_KLASSE_6 "U21"
-#define KIDS_ALTER_6 20
-
-#define Erwachsen "E"
-#define Meanner "M"
-#define Frauen "W"
+#define ERWACHSEN "E"
+#define MEANNER "M"
+#define FRAUEN "W"
 
 #define C_NORM enum_ccolor::WHITE
 #define C_HEAD enum_ccolor::CYAN
@@ -54,9 +37,30 @@ using json = nlohmann::json;
 
 namespace fs = std::filesystem;
 
+struct AgeClass {
+    std::string name;
+    int max_age;
+};
+
+struct AdultClass {
+    std::string male;
+    std::string female;
+};
+
+struct SexClass {
+    std::string male;
+    std::string female;
+};
+
 struct Config {
-    std::vector<std::string> typeAPrefixes; // klassisch
-    std::vector<std::string> typeBPrefixes; // vereinfacht
+    std::vector<std::string> typeAPrefixes;
+    std::vector<std::string> typeBPrefixes;
+
+    std::vector<AgeClass> ageClasses;
+    AdultClass adult;
+    SexClass sex;
+
+    std::string weightSuffix;
 };
 
 // Struktur fuer die Teilnehmerdaten
@@ -99,15 +103,37 @@ Config loadConfig(const std::string& filename) {
         throw std::runtime_error("Konnte config.json nicht öffnen!");
     }
 
-    nlohmann::json j;
+    json j;
     file >> j;
 
     Config cfg;
+
+    // Prefixes
     cfg.typeAPrefixes = j["input_types"]["A"]["prefixes"].get<std::vector<std::string>>();
     cfg.typeBPrefixes = j["input_types"]["B"]["prefixes"].get<std::vector<std::string>>();
 
+    // Age classes (dynamic)
+    for (auto& ac : j["kids_classes"]) {
+        cfg.ageClasses.push_back({
+            ac["name"].get<std::string>(),
+            ac["max_age"].get<int>()
+            });
+    }
+
+    // Adult classes
+    cfg.adult.male = j["adult_class"]["male"].get<std::string>();
+    cfg.adult.female = j["adult_class"]["female"].get<std::string>();
+
+    // Geschlecht
+    cfg.sex.male = j["sex"]["male"].get<std::string>();
+    cfg.sex.female = j["sex"]["female"].get<std::string>();
+
+    // Weight suffix
+    cfg.weightSuffix = j["weight_suffix"].get<std::string>();
+
     return cfg;
 }
+
 
 Config cfg = loadConfig(CONFIG_FILE_NAME);
 
@@ -213,45 +239,45 @@ std::vector<Teilnehmer> readInputACSV(const std::string& filename) {
 
 // berechnet anhand des Alters die Altersklasse (U9..U21 oder Erwachsen)
 std::string berechneAltersklasse(int alter) {
-    if (alter <= KIDS_ALTER_1)  return KIDS_KLASSE_1;
-    if (alter <= KIDS_ALTER_2) return KIDS_KLASSE_2;
-    if (alter <= KIDS_ALTER_3) return KIDS_KLASSE_3;
-    if (alter <= KIDS_ALTER_4) return KIDS_KLASSE_4;
-    if (alter <= KIDS_ALTER_5) return KIDS_KLASSE_5;
-    if (alter <= KIDS_ALTER_6) return KIDS_KLASSE_6;
-    return Erwachsen;
+    for (const auto& ac : cfg.ageClasses) {
+        if (alter <= ac.max_age)
+            return ac.name;
+    }
+    return ERWACHSEN; // Erwachsene
 }
+
 
 // verfeinert die Altersklasse mit Geschlechtsangabe
 // Bei Erwachsenen wird Meanner bzw. Frauen zurückgegeben (statt Uxxm)
 std::string berechneGeschlechtsklasse(const std::string& altersklasse, char geschlecht) {
+    
     // Normalisieren des Geschlechtszeichens (klein/ groß)
-    char g = geschlecht;
-    g = static_cast<char>(std::tolower(static_cast<unsigned char>(g)));
+    char g = std::tolower(static_cast<unsigned char>(geschlecht));
 
-    if (altersklasse == Erwachsen) {
-        return (g == M) ? Meanner : Frauen;
+    if (altersklasse == ERWACHSEN) {
+
+        return (g == M) ? cfg.adult.male : cfg.adult.female;
     }
-    return altersklasse + ((g == M) ? M : W);
+    return altersklasse + ((g == M) ? cfg.sex.male : cfg.sex.female);
 }
 
 // Hauptfunktion: aus Geburtsjahr + Geschlecht die finale Kategorie bauen
 // (z. B. "U15m-30" oder "W-30")
 std::string berechneKategorie(int geburtsjahr, char geschlecht) {
-    // aktuelles Jahr bestimmen
+
     std::time_t t = std::time(nullptr);
     std::tm* now = std::localtime(&t);
     int aktuellesJahr = now->tm_year + 1900;
 
     int alter = aktuellesJahr - geburtsjahr;
-    if (alter < 0) alter = 0; // Schutz gegen falsche Eingaben
+    if (alter < 0) alter = 0;
 
     std::string altersklasse = berechneAltersklasse(alter);
     std::string geschlechtsklasse = berechneGeschlechtsklasse(altersklasse, geschlecht);
 
-    // Hier ist das "fest gecodete Gewicht"
-    return geschlechtsklasse + MIN_KLASSE;
+    return geschlechtsklasse + cfg.weightSuffix;
 }
+
 
 /* -----------------------------
    NEU: Reader für B-Dateien
@@ -292,6 +318,7 @@ std::vector<Teilnehmer> readInputBCSV(const std::string& filename) {
 
         // Vorname
         std::getline(ss, t.vorname, delimiter);
+
         // Nachname
         std::getline(ss, t.name, delimiter);
 
@@ -301,12 +328,21 @@ std::vector<Teilnehmer> readInputBCSV(const std::string& filename) {
                 t.geburtsjahr = token.empty() ? 0 : std::stoi(token);
             }
             catch (...) {
-                t.geburtsjahr = 0; // bei fehlerhafter Zahl
+                t.geburtsjahr = 1900; // bei fehlerhafter Zahl
             }
         }
         else {
             t.geburtsjahr = 0;
         }
+
+        // Graduierung
+        std::getline(ss, t.graduierung, delimiter);
+
+        // Verein
+        std::getline(ss, t.verein, delimiter);
+
+        // Land
+        std::getline(ss, t.land, delimiter);
 
         // Geschlecht: erstes Zeichen (m/w)
         if (std::getline(ss, token, delimiter)) {
@@ -316,12 +352,6 @@ std::vector<Teilnehmer> readInputBCSV(const std::string& filename) {
             t.geschlecht = '\0';
         }
 
-        // Graduierung
-        std::getline(ss, t.graduierung, delimiter);
-        // Land
-        std::getline(ss, t.land, delimiter);
-        // Verein
-        std::getline(ss, t.verein, delimiter);
         // Kommentar (Rest der Zeile)
         std::getline(ss, t.kommentar, delimiter);
 

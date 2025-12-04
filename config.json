@@ -1,21 +1,32 @@
 {
   "input_types": {
     "A": {
-      "description": "klassisches Format",
-      "prefixes": [
-        "Meldungen_",
-        "Turniermeldung_",
-        "Teilnehmerliste_"
-      ]
+      "prefixes": ["Meldungen_", "MeldungKlassisch_", "Meisterschaft_"]
     },
     "B": {
-      "description": "vereinfachtes Format",
-      "prefixes": [
-        "WeihnachtT_",
-        "Einfach_",
-        "JCOTurnier_",
-        "QuickEntry_"
-      ]
+      "prefixes": ["Weihnachtsturnier_", "MeldungEinfach_", "JCOTurnier_"]
     }
-  }
+  },
+
+  "kids_classes": [
+    { "name": "___FATAL___ERROR___",  "max_age": 6 },
+    { "name": "U9",  "max_age": 8 },
+    { "name": "U11", "max_age": 10 },
+    { "name": "U13", "max_age": 12 },
+    { "name": "U15", "max_age": 14 },
+    { "name": "U18", "max_age": 17 },
+    { "name": "U21", "max_age": 20 }
+  ],
+
+  "adult_class": {
+    "male": "M",
+    "female": "W"
+  },
+
+  "sex": {
+    "male": "m",
+    "female": "w"
+  },
+
+  "weight_suffix": "-0"
 }
