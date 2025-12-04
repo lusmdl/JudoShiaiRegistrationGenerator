@@ -101,8 +101,6 @@ enum class enum_ccolor {
 
 Config loadConfig(const std::string& filename) {
 
-    std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
-
     char exePath[MAX_PATH];
     GetModuleFileNameA(NULL, exePath, MAX_PATH);
     std::filesystem::path exeDir = std::filesystem::path(exePath).parent_path();
@@ -582,10 +580,24 @@ int main() {
         int file_id = 1; // Start der file_id
         int gesamtDatensaetze = 0; // Zaehlt die Gesamtzahl der Datensaetze
 
-        std::cout << "\nStarte Verarbeitung der Dateien...\n";
+        // Benutzer nach Verzeichnis fragen
+        std::string inputDir;
+        std::cout << "Bitte geben Sie das Verzeichnis ein, in dem die CSV-Dateien liegen " << std::endl;
+        SetConsoleColor(C_OPT);
+        std::cout << "-'.'\t= aktuelles Arbeitsverzeichnis -> " << std::filesystem::current_path();
+        printUser();
+        //std::cin.ignore(); // Eingabepuffer leeren
+        std::getline(std::cin, inputDir);
+
+        if (!fs::exists(inputDir) || !fs::is_directory(inputDir)) {
+            std::cerr << "Das angegebene Verzeichnis existiert nicht oder ist kein Ordner.\n";
+            return 1;
+        }
+
+        std::cout << "Starte Verarbeitung der Dateien...\n";
 
         // Verzeichnis durchsuchen
-        for (const auto& entry : fs::directory_iterator(".")) {
+        for (const auto& entry : fs::directory_iterator(inputDir)) {
             if (entry.is_regular_file()) {
                 const std::string filename = entry.path().filename().string();
 
