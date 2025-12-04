@@ -9,7 +9,8 @@
 #include <windows.h>
 #include <ctime>        // für Zeit/aktuelles Jahr
 #include <cctype>       // für std::tolower
-#include "lib/json.hpp"
+//#include "lib/json.hpp"
+#include "json.hpp"
 
 using json = nlohmann::json;
 
@@ -97,7 +98,16 @@ enum class enum_ccolor {
 };
 
 
+
 Config loadConfig(const std::string& filename) {
+
+    std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
+
+    char exePath[MAX_PATH];
+    GetModuleFileNameA(NULL, exePath, MAX_PATH);
+    std::filesystem::path exeDir = std::filesystem::path(exePath).parent_path();
+    std::filesystem::path configPath = exeDir / filename;
+
     std::ifstream file(filename);
     if (!file.is_open()) {
         throw std::runtime_error("Konnte config.json nicht öffnen!");
