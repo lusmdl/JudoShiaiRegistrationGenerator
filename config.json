@@ -1,0 +1,21 @@
+{
+  "input_types": {
+    "A": {
+      "description": "klassisches Format",
+      "prefixes": [
+        "Meldungen_",
+        "Turniermeldung_",
+        "Teilnehmerliste_"
+      ]
+    },
+    "B": {
+      "description": "vereinfachtes Format",
+      "prefixes": [
+        "WeihnachtT_",
+        "Einfach_",
+        "JCOTurnier_",
+        "QuickEntry_"
+      ]
+    }
+  }
+}

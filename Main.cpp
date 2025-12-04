@@ -7,10 +7,45 @@
 #include <vector>
 #include <sstream>
 #include <windows.h>
+#include <ctime>        // für Zeit/aktuelles Jahr
+#include <cctype>       // für std::tolower
+#include "lib/json.hpp"
+
+using json = nlohmann::json;
 
 #define DELIMITER ',' // Delimiter als Makro
-#define MELDUNG_HEADER "Name,Vorname,Geburtsjahr,Graduierung,Verein,Land,Kategorie,Geschlecht,Kommentar"
+#define INPUT_A_HEADER "Name,Vorname,Geburtsjahr,Graduierung,Verein,Land,Kategorie,Geschlecht,Kommentar"
 #define TEILNEHMERLISTE_HEADER "Name,Vorname,Geburtsjahr,Graduierung,Verein,Land,Kategorie,ID,file_ID,Geschlecht,Kommentar"
+
+#define CONFIG_FILE_NAME "config.json"
+
+// Input Datei Namen
+#define INPUT_ENDING ".csv"
+#define INPUT_A "Meldungen_"
+#define INPUT_B "EasyMeldung_"
+
+// kürzel für klassen
+#define MIN_KLASSE "-0"
+
+#define W 'w'
+#define M 'm'
+
+#define KIDS_KLASSE_1 "U9"
+#define KIDS_ALTER_1 8
+#define KIDS_KLASSE_2 "U11"
+#define KIDS_ALTER_2 10
+#define KIDS_KLASSE_3 "U13"
+#define KIDS_ALTER_3 12
+#define KIDS_KLASSE_4 "U15"
+#define KIDS_ALTER_4 14
+#define KIDS_KLASSE_5 "U18"
+#define KIDS_ALTER_5 17
+#define KIDS_KLASSE_6 "U21"
+#define KIDS_ALTER_6 20
+
+#define Erwachsen "E"
+#define Meanner "M"
+#define Frauen "W"
 
 #define C_NORM enum_ccolor::WHITE
 #define C_HEAD enum_ccolor::CYAN
@@ -18,6 +53,11 @@
 #define C_USER enum_ccolor::BRIGHT_WHITE
 
 namespace fs = std::filesystem;
+
+struct Config {
+    std::vector<std::string> typeAPrefixes; // klassisch
+    std::vector<std::string> typeBPrefixes; // vereinfacht
+};
 
 // Struktur fuer die Teilnehmerdaten
 struct Teilnehmer {
@@ -51,6 +91,37 @@ enum class enum_ccolor {
     LIGHT_YELLOW = 14,
     BRIGHT_WHITE = 15
 };
+
+
+Config loadConfig(const std::string& filename) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::runtime_error("Konnte config.json nicht öffnen!");
+    }
+
+    nlohmann::json j;
+    file >> j;
+
+    Config cfg;
+    cfg.typeAPrefixes = j["input_types"]["A"]["prefixes"].get<std::vector<std::string>>();
+    cfg.typeBPrefixes = j["input_types"]["B"]["prefixes"].get<std::vector<std::string>>();
+
+    return cfg;
+}
+
+Config cfg = loadConfig(CONFIG_FILE_NAME);
+
+bool startsWithAnyPrefix(const std::string& filename,
+    const std::vector<std::string>& prefixes)
+{
+    for (const auto& p : prefixes) {
+        if (filename.rfind(p, 0) == 0) {
+            return true;                // beginnt mit Präfix
+        }
+    }
+    return false;
+}
+
 
 // Funktion, um die Konsolenfarbe zu setzen
 void SetConsoleColor(enum_ccolor color = C_NORM) {
@@ -102,7 +173,7 @@ Teilnehmer parseLine(const std::string& line, char delimiter) {
 
 
 // CSV-Datei einlesen und Daten speichern
-std::vector<Teilnehmer> readCSVFile(const std::string& filename) {
+std::vector<Teilnehmer> readInputACSV(const std::string& filename) {
     std::ifstream file(filename);
     std::vector<Teilnehmer> teilnehmer;
 
@@ -126,6 +197,138 @@ std::vector<Teilnehmer> readCSVFile(const std::string& filename) {
     // Zeilen einlesen und parsen
     while (std::getline(file, line)) {
         teilnehmer.push_back(parseLine(line, delimiter));
+    }
+
+    file.close();
+    return teilnehmer;
+}
+
+/* -----------------------------
+   NEU: Funktionen zur Kategorieberechnung
+   -----------------------------
+   Diese Funktionen wurden hinzugefügt, damit aus dem Geburtsjahr
+   + Geschlecht automatisch die Alters-/Geschlechtsklasse und
+   die finale Kategorie (z.B. "U15m-30") gebildet wird.
+*/
+
+// berechnet anhand des Alters die Altersklasse (U9..U21 oder Erwachsen)
+std::string berechneAltersklasse(int alter) {
+    if (alter <= KIDS_ALTER_1)  return KIDS_KLASSE_1;
+    if (alter <= KIDS_ALTER_2) return KIDS_KLASSE_2;
+    if (alter <= KIDS_ALTER_3) return KIDS_KLASSE_3;
+    if (alter <= KIDS_ALTER_4) return KIDS_KLASSE_4;
+    if (alter <= KIDS_ALTER_5) return KIDS_KLASSE_5;
+    if (alter <= KIDS_ALTER_6) return KIDS_KLASSE_6;
+    return Erwachsen;
+}
+
+// verfeinert die Altersklasse mit Geschlechtsangabe
+// Bei Erwachsenen wird Meanner bzw. Frauen zurückgegeben (statt Uxxm)
+std::string berechneGeschlechtsklasse(const std::string& altersklasse, char geschlecht) {
+    // Normalisieren des Geschlechtszeichens (klein/ groß)
+    char g = geschlecht;
+    g = static_cast<char>(std::tolower(static_cast<unsigned char>(g)));
+
+    if (altersklasse == Erwachsen) {
+        return (g == M) ? Meanner : Frauen;
+    }
+    return altersklasse + ((g == M) ? M : W);
+}
+
+// Hauptfunktion: aus Geburtsjahr + Geschlecht die finale Kategorie bauen
+// (z. B. "U15m-30" oder "W-30")
+std::string berechneKategorie(int geburtsjahr, char geschlecht) {
+    // aktuelles Jahr bestimmen
+    std::time_t t = std::time(nullptr);
+    std::tm* now = std::localtime(&t);
+    int aktuellesJahr = now->tm_year + 1900;
+
+    int alter = aktuellesJahr - geburtsjahr;
+    if (alter < 0) alter = 0; // Schutz gegen falsche Eingaben
+
+    std::string altersklasse = berechneAltersklasse(alter);
+    std::string geschlechtsklasse = berechneGeschlechtsklasse(altersklasse, geschlecht);
+
+    // Hier ist das "fest gecodete Gewicht"
+    return geschlechtsklasse + MIN_KLASSE;
+}
+
+/* -----------------------------
+   NEU: Reader für B-Dateien
+   -----------------------------
+   Format erwartet (Header): Vorname,Nachname,Geburtsjahr,Geschlecht,Graduierung,Land,Verein,Kommentar
+   WICHTIG: Hier wird **Geburtsjahr** in der Datei angegeben (z.B. 2015).
+   Die Funktion erkennt zusätzlich auch ; als Delimiter (wie readInputACSV).
+*/
+std::vector<Teilnehmer> readInputBCSV(const std::string& filename) {
+    std::ifstream file(filename);
+    std::vector<Teilnehmer> teilnehmer;
+
+    if (!file.is_open()) {
+        std::cerr << "Fehler beim Öffnen der Datei: " << filename << '\n';
+        return teilnehmer;
+    }
+
+    std::string line;
+
+    // Header-Zeile lesen, um den Delimiter zu erkennen (kompatibel zu readInputACSV)
+    if (!std::getline(file, line)) {
+        file.close();
+        return teilnehmer;
+    }
+    char delimiter = detectDelimiter(line);
+    if (delimiter == '\0') {
+        // Fallback: falls Header ungewöhnlich formatiert ist, nehmen wir das Standard-DELIMITER ','
+        delimiter = ',';
+    }
+
+    // Zeilen einlesen
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+
+        std::istringstream ss(line);
+        std::string token;
+        Teilnehmer t;
+
+        // Vorname
+        std::getline(ss, t.vorname, delimiter);
+        // Nachname
+        std::getline(ss, t.name, delimiter);
+
+        // Geburtsjahr: direkt übernehmen (nun erwartet)
+        if (std::getline(ss, token, delimiter)) {
+            try {
+                t.geburtsjahr = token.empty() ? 0 : std::stoi(token);
+            }
+            catch (...) {
+                t.geburtsjahr = 0; // bei fehlerhafter Zahl
+            }
+        }
+        else {
+            t.geburtsjahr = 0;
+        }
+
+        // Geschlecht: erstes Zeichen (m/w)
+        if (std::getline(ss, token, delimiter)) {
+            t.geschlecht = token.empty() ? '\0' : token[0];
+        }
+        else {
+            t.geschlecht = '\0';
+        }
+
+        // Graduierung
+        std::getline(ss, t.graduierung, delimiter);
+        // Land
+        std::getline(ss, t.land, delimiter);
+        // Verein
+        std::getline(ss, t.verein, delimiter);
+        // Kommentar (Rest der Zeile)
+        std::getline(ss, t.kommentar, delimiter);
+
+        // Kategorie / Gewicht automatisch berechnen (hier wird "gewicht" Feld dafür genutzt)
+        t.gewicht = berechneKategorie(t.geburtsjahr, t.geschlecht);
+
+        teilnehmer.push_back(t);
     }
 
     file.close();
@@ -176,7 +379,7 @@ void createNewCSVFile() {
     std::cin >> fileSuffix;
     SetConsoleColor();
 
-    std::string filename = "Meldungen_" + fileSuffix + ".csv";
+    std::string filename = INPUT_A + fileSuffix + INPUT_ENDING;
 
     std::ofstream file(filename);
     if (!file.is_open()) {
@@ -185,7 +388,7 @@ void createNewCSVFile() {
     }
 
     // Header in die Datei schreiben
-    file << MELDUNG_HEADER << "\n";
+    file << INPUT_A_HEADER << "\n";
     std::cout << "\nDatei '" << filename << "' wurde angelegt. Erstellen wir Datensaetze!\n";
 
 
@@ -346,23 +549,48 @@ int main() {
             if (entry.is_regular_file()) {
                 const std::string filename = entry.path().filename().string();
 
-                // Pruefen, ob der Dateiname mit "Meldungen" beginnt und auf ".csv" endet
-                if (filename.starts_with("Meldungen") && filename.ends_with(".csv")) {
-                    std::cout << "Lese Datei: " << filename << "\t(file_id " << file_id << ") ...\t";
-                    auto teilnehmer = readCSVFile(filename);
+                // typ A (klassisch)
+                if (startsWithAnyPrefix(filename, cfg.typeAPrefixes) && filename.ends_with(INPUT_ENDING))
+                {
+                    std::cout << filename;
+                    int Datenseatze = 0;
+                    auto teilnehmer = readInputACSV(filename);
 
-                    int anzahlDatensaetze = teilnehmer.size(); // Anzahl der Datensaetze in dieser Datei
-                    gesamtDatensaetze += anzahlDatensaetze;   // Zur Gesamtsumme hinzufuegen
-
-                    std::cout << anzahlDatensaetze << " Datensaetze in Datei gefunden.\n";
-
-                    // Alle Teilnehmer aus der Datei mit derselben file_id versehen
                     for (const auto& t : teilnehmer) {
+
                         alleTeilnehmerMitFileId.emplace_back(t, file_id);
+                        gesamtDatensaetze++;
+                        Datenseatze++;
                     }
 
-                    file_id++; // file_id inkrementieren fuer die naechste Datei
+                    std::cout << "\t (A)  \t" << Datenseatze << "\n";
+                    file_id++;
                 }
+
+                // typ B (vereinfacht)
+                else if (startsWithAnyPrefix(filename, cfg.typeBPrefixes) && filename.ends_with(INPUT_ENDING))
+                {
+                    std::cout << filename;
+                    int Datenseatze = 0;
+                    auto teilnehmer = readInputBCSV(filename);
+
+                    for (const auto& t : teilnehmer) {
+
+                        alleTeilnehmerMitFileId.emplace_back(t, file_id);
+                        gesamtDatensaetze++;
+                        Datenseatze++;
+                    }
+
+                    std::cout << "\t (B) \t" << Datenseatze << "\n";
+
+                    file_id++;
+                }
+
+                else {
+                    //std::cout << "Ignoriere: " << filename << "\n";
+                }
+
+                // optional: weitere Dateinamen-Patterns können hier ergänzt werden
             }
         }
 
