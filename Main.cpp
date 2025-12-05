@@ -21,15 +21,10 @@ using json = nlohmann::json;
 #define TEILNEHMERLISTE_HEADER "Name,Vorname,Geburtsjahr,Graduierung,Verein,Land,Kategorie,ID,file_ID,Geschlecht,Kommentar"
 #define CONFIG_FILE_NAME "config.json"
 
-// kürzel für klassen
-#define MIN_KLASSE "-0"
-
 #define W 'w'
 #define M 'm'
 
 #define ERWACHSEN "E"
-#define MEANNER "M"
-#define FRAUEN "W"
 
 #define C_NORM enum_ccolor::WHITE
 #define C_HEAD enum_ccolor::CYAN
@@ -212,7 +207,7 @@ std::vector<Teilnehmer> readInputACSV(const std::string& filename) {
     std::vector<Teilnehmer> teilnehmer;
 
     if (!file.is_open()) {
-        std::cerr << "Fehler beim Öffnen der Datei: " << filename << '\n';
+        std::cerr << "\nFehler beim Oeffnen der Datei: " << filename;
         return teilnehmer;
     }
 
@@ -223,7 +218,7 @@ std::vector<Teilnehmer> readInputACSV(const std::string& filename) {
     if (std::getline(file, line)) {
         delimiter = detectDelimiter(line);
         if (delimiter == '\0') {
-            std::cerr << "Kein gültiger Delimiter in der Datei gefunden: " << filename << '\n';
+            std::cerr << "Kein gueltiger Delimiter in der Datei gefunden: " << filename << '\n';
             return teilnehmer;
         }
     }
@@ -236,14 +231,6 @@ std::vector<Teilnehmer> readInputACSV(const std::string& filename) {
     file.close();
     return teilnehmer;
 }
-
-/* -----------------------------
-   NEU: Funktionen zur Kategorieberechnung
-   -----------------------------
-   Diese Funktionen wurden hinzugefügt, damit aus dem Geburtsjahr
-   + Geschlecht automatisch die Alters-/Geschlechtsklasse und
-   die finale Kategorie (z.B. "U15m-30") gebildet wird.
-*/
 
 // berechnet anhand des Alters die Altersklasse (U9..U21 oder Erwachsen)
 std::string berechneAltersklasse(int alter) {
@@ -287,19 +274,12 @@ std::string berechneKategorie(int geburtsjahr, char geschlecht) {
 }
 
 
-/* -----------------------------
-   NEU: Reader für B-Dateien
-   -----------------------------
-   Format erwartet (Header): Vorname,Nachname,Geburtsjahr,Geschlecht,Graduierung,Land,Verein,Kommentar
-   WICHTIG: Hier wird **Geburtsjahr** in der Datei angegeben (z.B. 2015).
-   Die Funktion erkennt zusätzlich auch ; als Delimiter (wie readInputACSV).
-*/
 std::vector<Teilnehmer> readInputBCSV(const std::string& filename) {
     std::ifstream file(filename);
     std::vector<Teilnehmer> teilnehmer;
 
     if (!file.is_open()) {
-        std::cerr << "Fehler beim Öffnen der Datei: " << filename << '\n';
+        std::cerr << "\nFehler beim Oeffnen der Datei: " << filename;
         return teilnehmer;
     }
 
@@ -380,7 +360,7 @@ void writeCSVFile(const std::string& filename, const std::vector<std::pair<Teiln
 
     if (!file.is_open()) {
         std::cerr << "Fehler beim Öffnen der Datei zum Schreiben: " << filename << '\n';
-        return;
+        return ;
     }
 
     // Header schreiben
