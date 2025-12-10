@@ -58,7 +58,7 @@ int main() {
                 {
                     std::cout << filename;
                     int Datenseatze = 0;
-                    auto teilnehmer = readInputACSV(filename);
+                    auto teilnehmer = readInputACSV(entry.path().string());
 
                     for (const auto& t : teilnehmer) {
 
@@ -76,7 +76,7 @@ int main() {
                 {
                     std::cout << filename;
                     int Datenseatze = 0;
-                    auto teilnehmer = readInputBCSV(filename);
+                    auto teilnehmer = readInputACSV(entry.path().string());
 
                     for (const auto& t : teilnehmer) {
 
