@@ -8,7 +8,7 @@ Mehr zur Handhabung der Meldungsdateien und zu den einzelnen Spalten findest du 
 
 ## Schnellstart
 
-1. Die Datei **`judoshia.html`** im Browser öffnen (Doppelklick genügt, funktioniert auch offline).
+1. Die Datei **`JudoShiai Meldung Generator.html`** im Browser öffnen (Doppelklick genügt, funktioniert auch offline).
 2. Oben zwischen den beiden Modi wählen:
    - **1 · Meldungen zusammenfassen**: vorhandene `Meldungen*.csv`-Dateien einlesen und zu einer Teilnehmerliste zusammenführen.
    - **2 · Neue Meldungen-Datei**: Judoka erfassen und als neue Meldungsdatei exportieren.
@@ -148,7 +148,7 @@ Standard-Konfiguration:
 | `sex` | Kürzel, das hinter der Altersklasse angehängt wird |
 | `weight_suffix` | Platzhalter für die Gewichtsklasse bei berechneten Kategorien |
 
-Die Konfiguration wird beim Neuladen der Seite auf die Standardwerte zurückgesetzt. Eigene Werte entweder per Import laden oder die Standardwerte im Quelltext anpassen (Konstante `DEF` im Skript von `judoshia.html`).
+Die Konfiguration wird beim Neuladen der Seite auf die Standardwerte zurückgesetzt. Eigene Werte entweder per Import laden oder die Standardwerte im Quelltext anpassen (Konstante `DEF` im Skript von `JudoShiai Meldung Generator.html`).
 
 ### Berechnung der Kategorie
 
@@ -172,7 +172,7 @@ Beispiele mit `weight_suffix` = `-0`: ein Junge Jahrgang 2012 (Alter 14) ergibt 
 
 ## Technik und Entwicklung
 
-- **Eine einzige Datei:** HTML, CSS und JavaScript liegen gemeinsam in `judoshia.html`. Es gibt keine externen Bibliotheken, Frameworks oder Build-Schritte.
+- **Eine einzige Datei:** HTML, CSS und JavaScript liegen gemeinsam in `JudoShiai Meldung Generator.html`. Es gibt keine externen Bibliotheken, Frameworks oder Build-Schritte.
 - **Datenschutz:** Dateien werden ausschließlich lokal im Browser gelesen und verarbeitet. Es findet keine Übertragung an einen Server statt.
 - **Darstellung:** Das Layout ist responsiv und passt sich dem hellen oder dunklen Farbschema des Systems an.
 
@@ -190,7 +190,7 @@ Beispiele mit `weight_suffix` = `-0`: ein Junge Jahrgang 2012 (Alter 14) ergibt 
 - Neue Spalten erfordern eine Anpassung der Parser, der Spaltenliste `COLS` und der Kopfzeilen im Skript.
 
 ### Veröffentlichen (optional)
-Da die Anwendung nur aus einer statischen Datei besteht, lässt sie sich z. B. über **GitHub Pages** kostenlos bereitstellen: `judoshia.html` im Repository ablegen (am besten als `index.html`) und Pages in den Repository-Einstellungen aktivieren.
+Da die Anwendung nur aus einer statischen Datei besteht, lässt sie sich z. B. über **GitHub Pages** kostenlos bereitstellen: `JudoShiai Meldung Generator.html` im Repository ablegen (am besten als `index.html`) und Pages in den Repository-Einstellungen aktivieren.
 
 ---
 
