@@ -176,9 +176,9 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 $("cfg").value=JSON.stringify(DEF,null,2);
 
 (async()=>{try{if(window.claude&&claude.use)dl=await claude.use("downloads")}catch(e){dl=null}
- if(!dl)document.querySelectorAll(".dl").forEach(b=>{b.disabled=true;b.title="Export ist in dieser Ansicht nicht verfügbar"})})();
+ })();
 async function saveFile(name,data,msgEl){
- if(!dl){msgEl&&(msgEl.textContent="Export hier nicht verfügbar.");return}
+ if(!dl){try{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"text/plain;charset=utf-8"}));a.download=name;document.body.appendChild(a);a.click();a.remove();if(msgEl)msgEl.textContent=name+" exportiert."}catch(e){if(msgEl)msgEl.textContent="Export fehlgeschlagen."}return}
  try{await dl.save({filename:name,data});if(msgEl)msgEl.textContent=name+" gespeichert."}
  catch(e){if(msgEl)msgEl.textContent=e&&e.code==="declined"?"Abgebrochen.":"Export fehlgeschlagen ("+(e&&e.code||"Fehler")+")."}
 }
