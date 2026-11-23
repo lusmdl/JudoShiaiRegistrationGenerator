@@ -56,6 +56,15 @@ th.srt{cursor:pointer}
 .pop .ys button:disabled{opacity:.35;cursor:default}
 .pop .info{margin-top:8px;color:var(--mut);font-size:12px;min-height:18px}
 .hint{color:var(--mut);font-size:13px}
+.pie{display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+.pie svg{width:250px;height:250px;flex:none;max-width:100%}
+.pie .sl{transition:opacity .15s}
+.pie svg:hover .sl{opacity:.5}
+.pie svg .sl:hover{opacity:1}
+.leg{flex:1;min-width:210px;display:grid;gap:7px;font-size:14px}
+.leg div{display:flex;align-items:center;gap:8px}
+.leg i{width:13px;height:13px;border-radius:3px;flex:none}
+.leg b{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
 .ign{color:var(--mut);font-size:13px}
 </style>
 </head>
@@ -118,6 +127,11 @@ th.srt{cursor:pointer}
    </div>
    <div class="scroll"><table id="tbl"></table></div>
    <p class="hint">Klick auf eine Spaltenüberschrift sortiert. „Ansicht kopieren“ übernimmt die aktuell gefilterte und sortierte Tabelle, auch für E-Mails geeignet.</p>
+  </div>
+  <div class="card">
+   <h2>Verteilung der Altersklassen</h2>
+   <div class="pie" id="pie"></div>
+   <p class="hint" style="margin-bottom:0">Alle Kategorien einer Altersklasse werden zusammengefasst, z. B. U13m-30 und U13w-40 → U13*. Das Diagramm folgt den Filtern der Teilnehmerliste.</p>
   </div>
  </div>
 </section>
@@ -270,6 +284,26 @@ function fillSelects(){
   if(vals.map(String).includes(cur))$(id).value=cur;
  }
 }
+const PAL=i=>`hsl(${(i*47+195)%360} 62% 52%)`;
+function ageGroup(k){const m=String(k).match(/^U\d+/i);if(m)return m[0].toUpperCase();const a=cfg.adult_class;if(k&&(String(k).startsWith(a.male)||String(k).startsWith(a.female)))return "Erwachsene";return "Sonstige"}
+function renderPie(v){
+ const cnt={};v.forEach(t=>{const g=ageGroup(t.kat);cnt[g]=(cnt[g]||0)+1});
+ const rank=g=>g=="Erwachsene"?999:g=="Sonstige"?1000:parseInt(g.slice(1));
+ const keys=Object.keys(cnt).sort((a,b)=>rank(a)-rank(b)),tot=v.length,lab=k=>k.startsWith("U")?k+"*":k;
+ if(!tot){$("pie").innerHTML='<p class="hint">Keine Datensätze in der aktuellen Ansicht.</p>';return}
+ const R=100,r=58,cx=120,cy=120,pt=(rad,a)=>[cx+rad*Math.cos(a),cy+rad*Math.sin(a)];
+ let ang=-Math.PI/2,paths="";
+ keys.forEach((k,i)=>{
+  const f=cnt[k]/tot,col=PAL(i),tip=`${lab(k)}: ${cnt[k]} (${(f*100).toFixed(1)} %)`;
+  if(f>=0.9999){paths+=`<circle class="sl" cx="${cx}" cy="${cy}" r="${(R+r)/2}" fill="none" stroke="${col}" stroke-width="${R-r}"><title>${esc(tip)}</title></circle>`;return}
+  const a2=ang+f*2*Math.PI,lg=f>.5?1:0;
+  const [x1,y1]=pt(R,ang),[x2,y2]=pt(R,a2),[x3,y3]=pt(r,a2),[x4,y4]=pt(r,ang);
+  paths+=`<path class="sl" d="M${x1} ${y1}A${R} ${R} 0 ${lg} 1 ${x2} ${y2}L${x3} ${y3}A${r} ${r} 0 ${lg} 0 ${x4} ${y4}Z" fill="${col}" style="stroke:var(--card);stroke-width:2"><title>${esc(tip)}</title></path>`;
+  ang=a2;
+ });
+ const leg=keys.map((k,i)=>`<div><i style="background:${PAL(i)}"></i>${esc(lab(k))}<b>${cnt[k]} · ${(cnt[k]/tot*100).toFixed(1)} %</b></div>`).join("");
+ $("pie").innerHTML=`<svg viewBox="0 0 240 240" role="img" aria-label="Verteilung der Altersklassen">${paths}<text x="120" y="119" text-anchor="middle" style="font-size:30px;font-weight:700;fill:var(--tx)">${tot}</text><text x="120" y="139" text-anchor="middle" style="font-size:12px;fill:var(--mut)">Teilnehmer</text></svg><div class="leg">${leg}</div>`;
+}
 function resetFilters(){["f_q","f_von","f_bis","f_kat","f_ver","f_land","f_sex","f_grad","f_fid"].forEach(i=>$(i).value="");renderList()}
 function view(){
  const q=$("f_q").value.toLowerCase().trim(),von=parseInt($("f_von").value),bis=parseInt($("f_bis").value);
@@ -283,7 +317,7 @@ function view(){
 function sortBy(k){if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=1}renderList()}
 function renderList(){
  const v=view();
- $("cnt").textContent=v.length+" von "+all.length+" Datensätzen";
+ $("cnt").textContent=v.length+" von "+all.length+" Datensätzen";renderPie(v);
  $("tbl").innerHTML=`<thead><tr>${COLS.map(([k,h])=>`<th class="srt" onclick="sortBy('${k}')">${h}${sortKey===k?(sortDir>0?" ▲":" ▼"):""}</th>`).join("")}</tr></thead><tbody>${v.map(t=>`<tr>${COLS.map(([k])=>`<td>${esc(t[k])}</td>`).join("")}</tr>`).join("")}</tbody>`;
 }
 function listRows(v){return v.map(t=>COLS.map(([k])=>t[k]))}
