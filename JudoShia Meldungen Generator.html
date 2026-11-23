@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JudoShia Meldungen Generator</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mut:#667085;--bd:#dde1e7;--ac:#0e7490;--a:#2563eb;--b:#c2410c;--ign:#98a2b3;--on:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#0f1318;--card:#181d24;--tx:#e6e9ee;--mut:#98a2b3;--bd:#2a313b;--ac:#22d3ee;--a:#60a5fa;--b:#fb923c;--ign:#667085;--on:#04222a}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#0f1318;--card:#181d24;--tx:#e6e9ee;--mut:#98a2b3;--bd:#2a313b;--ac:#22d3ee;--a:#60a5fa;--b:#fb923c;--ign:#667085;--on:#04222a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:22px;margin:0 0 4px;color:var(--ac)}
+.sub{color:var(--mut);margin:0 0 18px}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tabs button{flex:1;padding:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;cursor:pointer;font:inherit;text-align:left}
+.tabs button.on{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac)}
+.tabs small{display:block;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px}
+h2{font-size:15px;margin:0 0 10px}
+h3{font-size:14px;margin:0}
+button.p,label.p{display:inline-block;background:var(--ac);color:var(--on);border:0;border-radius:7px;padding:8px 14px;cursor:pointer;font:inherit}
+button.s,label.s{display:inline-block;background:none;border:1px solid var(--bd);color:var(--tx);border-radius:7px;padding:8px 14px;cursor:pointer;font:inherit}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+textarea,input,select{font:13px ui-monospace,Consolas,monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:7px;width:100%}
+textarea{min-height:140px}
+details summary{cursor:pointer;font-weight:600}
+.badge{min-width:26px;text-align:center;border-radius:5px;color:#fff;font-weight:700;padding:1px 6px;font-size:13px}
+.badge.A{background:var(--a)}.badge.B{background:var(--b)}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.stat{flex:1;min-width:120px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 12px}
+.stat b{display:block;font-size:20px}
+.stat span{color:var(--mut);font-size:12px}
+.fh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.fh .n{font-family:ui-monospace,Consolas,monospace;font-size:13px;overflow-wrap:anywhere}
+.fh .sp{flex:1}
+.scroll{overflow:auto;max-height:360px;border:1px solid var(--bd);border-radius:7px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border-bottom:1px solid var(--bd);padding:5px 8px;text-align:left;white-space:nowrap}
+th{color:var(--mut);position:sticky;top:0;background:var(--card);user-select:none}
+th.srt{cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.grid label{font-size:12px;color:var(--mut);display:block}
+.hide{display:none!important}
+.bad{border-color:#dc2626}
+.pop{position:absolute;z-index:20;top:100%;left:0;margin-top:4px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px;width:250px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.pop .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-weight:600}
+.pop .nav button{background:none;border:1px solid var(--bd);color:var(--tx);border-radius:6px;cursor:pointer;padding:2px 12px;font:inherit}
+.pop .ys{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pop .ys button{padding:8px 0;border:1px solid var(--bd);background:var(--bg);color:var(--tx);border-radius:6px;cursor:pointer;font:13px ui-monospace,Consolas,monospace}
+.pop .ys button.sel{background:var(--ac);color:var(--on);border-color:var(--ac)}
+.pop .ys button.now{border-color:var(--ac)}
+.pop .ys button:disabled{opacity:.35;cursor:default}
+.pop .info{margin-top:8px;color:var(--mut);font-size:12px;min-height:18px}
+.hint{color:var(--mut);font-size:13px}
+.ign{color:var(--mut);font-size:13px}
+</style>
+</head>
+<body>
+<main>
+<h1>JudoShia Meldungen Generator</h1>
+<p class="sub">Alles läuft lokal im Browser, es werden keine Dateien hochgeladen.</p>
+
+<div class="tabs">
+ <button id="t1" class="on" onclick="tab(1)">1 · Meldungen zusammenfassen<small>Meldungen*.csv einlesen → Teilnehmerliste</small></button>
+ <button id="t2" onclick="tab(2)">2 · Neue Meldungen-Datei<small>Datensätze erfassen</small></button>
+</div>
+
+<details class="card"><summary>Konfiguration (config.json)</summary>
+ <p class="hint">Importiere deine config.json oder bearbeite sie hier und exportiere sie wieder.</p>
+ <textarea id="cfg" spellcheck="false"></textarea>
+ <div class="row" style="margin-top:8px">
+  <label class="s">config.json importieren<input type="file" accept=".json,application/json" class="hide" onchange="importCfg(this)"></label>
+  <button class="s" onclick="applyCfg()">Änderungen übernehmen</button>
+  <button class="p dl" onclick="exportCfg()">config.json exportieren</button>
+  <span id="cfgmsg" class="hint"></span>
+ </div>
+</details>
+
+<section id="v1">
+ <div class="card">
+  <h2>Schritt 1: Dateien wählen</h2>
+  <div class="row">
+   <label class="p">CSV-Dateien wählen<input type="file" accept=".csv" multiple class="hide" onchange="loadFiles(this.files)"></label>
+   <button class="s" onclick="loadDemo()">Beispieldaten laden</button>
+  </div>
+  <p class="hint">Typ A: Name, Vorname, Geburtsjahr, Graduierung, Verein, Land, Kategorie, Geschlecht, Kommentar.<br>Typ B: Vorname, Name, Geburtsjahr, Graduierung, Verein, Land, Geschlecht, Kommentar (Kategorie wird berechnet).</p>
+ </div>
+
+ <div id="res" class="hide">
+  <div class="stats" id="stats"></div>
+  <h2>Schritt 2: Eingelesene Dateien</h2>
+  <div id="files"></div>
+  <p id="ignored" class="ign"></p>
+
+  <div class="card">
+   <h2>Teilnehmerliste</h2>
+   <div class="grid">
+    <div><label>Suche (Name, Verein …)</label><input id="f_q" oninput="renderList()"></div>
+    <div><label>Kategorie</label><select id="f_kat" onchange="renderList()"></select></div>
+    <div><label>Verein</label><select id="f_ver" onchange="renderList()"></select></div>
+    <div><label>Land</label><select id="f_land" onchange="renderList()"></select></div>
+    <div><label>Geschlecht</label><select id="f_sex" onchange="renderList()"></select></div>
+    <div><label>Graduierung</label><select id="f_grad" onchange="renderList()"></select></div>
+    <div><label>Quelldatei (file_ID)</label><select id="f_fid" onchange="renderList()"></select></div>
+    <div><label>Geburtsjahr von</label><input id="f_von" type="number" oninput="renderList()"></div>
+    <div><label>Geburtsjahr bis</label><input id="f_bis" type="number" oninput="renderList()"></div>
+   </div>
+   <div class="row" style="margin:10px 0">
+    <span id="cnt" class="hint" style="flex:1"></span>
+    <button class="s" onclick="resetFilters()">Filter zurücksetzen</button>
+    <button class="s" onclick="copyList(this)">Ansicht kopieren</button>
+    <button class="s dl" onclick="exportCsv(true)">Gefilterte exportieren</button>
+    <button class="p dl" onclick="exportCsv(false)">Teilnehmerliste.csv exportieren</button>
+   </div>
+   <div class="scroll"><table id="tbl"></table></div>
+   <p class="hint">Klick auf eine Spaltenüberschrift sortiert. „Ansicht kopieren“ übernimmt die aktuell gefilterte und sortierte Tabelle, auch für E-Mails geeignet.</p>
+  </div>
+ </div>
+</section>
+
+<section id="v2" class="hide">
+ <div class="card">
+  <h2>Dateityp und Dateiname</h2>
+  <div class="row"><select id="n_typ" onchange="renderNew()" style="max-width:340px"><option value="A">Typ A (klassisch, mit Kategorie)</option><option value="B">Typ B (vereinfacht, Kategorie wird berechnet)</option></select></div>
+  <div class="row" style="margin-top:8px"><select id="pre" onchange="renderNew()" style="max-width:240px"></select><input id="suf" value="Berlin" style="max-width:200px" oninput="sufChange()" placeholder="Vereinsname"><span>.csv</span></div>
+  <p class="hint" style="margin:6px 0 0">Der Vereinsname hier wird als Standard in das Feld „Verein“ übernommen und kann dort jederzeit überschrieben werden.</p>
+ </div>
+ <div class="card">
+  <h2>Judoka erfassen</h2>
+  <p class="hint">Pflichtfelder: alle außer Kategorie, Gewicht und Kommentar. Kommas werden durch Leerzeichen ersetzt. Das Gewicht (nur Typ A) fließt in die automatisch berechnete Kategorie ein.</p>
+  <div class="grid">
+   <div id="w_name"><label>Name (Bauer)</label><input id="n_name" maxlength="50"></div>
+   <div id="w_vor"><label>Vorname (Anna)</label><input id="n_vor" maxlength="50"></div>
+   <div id="yrwrap" style="position:relative"><label>Geburtsjahr (Jahrgang)</label><div class="row" style="flex-wrap:nowrap"><input id="n_jahr" type="number" min="1900" max="2100"><button class="s" type="button" onclick="yrToggle()" title="Kalender öffnen" style="padding:6px 10px">📅</button></div><div id="yrpop" class="pop hide"></div></div>
+   <div><label>Gürtelgrad (3k / 1d)</label><select id="n_grad" onchange="beltHint()"></select><span id="belt" class="hint"></span></div>
+   <div><label>Verein (DJK Berlin)</label><input id="n_ver" maxlength="100" oninput="verEdit()"></div>
+   <div><label>Land (ISO Alpha-3)</label><select id="n_land"></select></div>
+   <div id="w_kat"><label>Kategorie (optional, U18w-57)</label><input id="n_kat"></div>
+   <div id="w_gew"><label>Gewicht in kg (optional)</label><input id="n_gew" inputmode="numeric" placeholder="57"></div>
+   <div><label>Geschlecht</label><select id="n_sex"><option>m</option><option>w</option></select></div>
+   <div><label>Kommentar</label><input id="n_kom" maxlength="200"></div>
+  </div>
+  <div class="row" style="margin-top:10px">
+   <button class="s" id="b_auto" onclick="autoKat()">Kategorie automatisch berechnen</button>
+   <button class="p" onclick="saveRec()">Datensatz speichern</button>
+   <button class="s" onclick="clearForm()">Verwerfen</button>
+  </div>
+  <div id="newmsg" class="hint" style="margin-top:8px"></div>
+ </div>
+ <div class="card">
+  <h2>Vorschau <span id="fname" class="hint"></span></h2>
+  <textarea id="newout" readonly></textarea>
+  <div class="row" style="margin-top:8px">
+   <button class="p dl" onclick="saveNew()">Datei exportieren</button>
+   <button class="s" onclick="copyText(newout.value,this)">Kopieren</button>
+   <button class="s" onclick="records=[];renderNew()">Alle löschen</button>
+  </div>
+ </div>
+</section>
+</main>
+
+<script>
+const $=i=>document.getElementById(i);
+const DEF={input_types:{A:{prefixes:["Meldungen_","MeldungKlassisch_","Meisterschaft_"]},B:{prefixes:["Weihnachtsturnier_","MeldungEinfach_","JCOTurnier_"]}},
+kids_classes:[{name:"___FATAL___ERROR___",max_age:6},{name:"U9",max_age:8},{name:"U11",max_age:10},{name:"U13",max_age:12},{name:"U15",max_age:14},{name:"U18",max_age:17},{name:"U21",max_age:20}],
+adult_class:{male:"M",female:"W"},sex:{male:"m",female:"w"},weight_suffix:"-0"};
+const HDR_A="Name,Vorname,Geburtsjahr,Graduierung,Verein,Land,Kategorie,Geschlecht,Kommentar";
+const COLS=[["name","Name"],["vorname","Vorname"],["jahr","Geburtsjahr"],["grad","Graduierung"],["verein","Verein"],["land","Land"],["kat","Kategorie"],["id","ID"],["fid","file_ID"],["sex","Geschlecht"],["kom","Kommentar"]];
+const HDR_OUT=COLS.map(c=>c[1]).join(",");
+let cfg=JSON.parse(JSON.stringify(DEF)),files=[],parsed=[],all=[],records=[],sortKey=null,sortDir=1,dl=null;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+$("cfg").value=JSON.stringify(DEF,null,2);
+
+(async()=>{try{if(window.claude&&claude.use)dl=await claude.use("downloads")}catch(e){dl=null}
+ if(!dl)document.querySelectorAll(".dl").forEach(b=>{b.disabled=true;b.title="Export ist in dieser Ansicht nicht verfügbar"})})();
+async function saveFile(name,data,msgEl){
+ if(!dl){msgEl&&(msgEl.textContent="Export hier nicht verfügbar.");return}
+ try{await dl.save({filename:name,data});if(msgEl)msgEl.textContent=name+" gespeichert."}
+ catch(e){if(msgEl)msgEl.textContent=e&&e.code==="declined"?"Abgebrochen.":"Export fehlgeschlagen ("+(e&&e.code||"Fehler")+")."}
+}
+
+// --- Config ---
+function applyCfg(){
+ try{const j=JSON.parse($("cfg").value);
+  ["input_types","kids_classes","adult_class","sex","weight_suffix"].forEach(k=>{if(!(k in j))throw new Error("Feld fehlt: "+k)});
+  cfg=j;$("cfgmsg").textContent="Übernommen.";if(files.length)process();return true;
+ }catch(e){$("cfgmsg").textContent="Fehler: "+e.message;return false}
+}
+async function importCfg(inp){const f=inp.files[0];if(!f)return;$("cfg").value=await f.text();if(applyCfg())$("cfgmsg").textContent=f.name+" importiert.";inp.value=""}
+function exportCfg(){if(!applyCfg())return;saveFile("config.json",JSON.stringify(cfg,null,2),$("cfgmsg"))}
+function tab(n){t1.classList.toggle("on",n==1);t2.classList.toggle("on",n==2);v1.classList.toggle("hide",n!=1);v2.classList.toggle("hide",n!=2);if(n==2)renderNew()}
+
+// --- Logik (entspricht FileProcessor.h) ---
+const startsWithAny=(f,p)=>p.some(x=>f.startsWith(x));
+const detectDelim=l=>l.includes(",")?",":l.includes(";")?";":"";
+function berechneKategorie(jahr,g,suf){
+ const alter=Math.max(0,new Date().getFullYear()-jahr);
+ const ac=cfg.kids_classes.find(a=>alter<=a.max_age);
+ const m=!/w/i.test(g||"");
+ return (ac?ac.name+(m?cfg.sex.male:cfg.sex.female):(m?cfg.adult_class.male:cfg.adult_class.female))+(suf||cfg.weight_suffix);
+}
+function parseA(text){
+ const lines=text.split(/\r?\n/),d=detectDelim(lines[0]||"");
+ if(!d)return{err:"Kein gültiger Delimiter",rows:[]};
+ const rows=[];
+ for(const l of lines.slice(1)){if(!l.trim())continue;const c=l.split(d);
+  rows.push({name:c[0]||"",vorname:c[1]||"",jahr:parseInt(c[2])||0,grad:c[3]||"",verein:c[4]||"",land:c[5]||"",kat:c[6]||"",sex:(c[7]||"")[0]||"",kom:c[8]||""})}
+ return{rows};
+}
+function parseB(text){
+ const lines=text.split(/\r?\n/),d=detectDelim(lines[0]||"")||",";
+ const rows=[];
+ for(const l of lines.slice(1)){if(!l.trim())continue;const c=l.split(d);
+  const jahr=c[2]===undefined||c[2]===""?0:(parseInt(c[2])||1900),sex=(c[6]||"")[0]||"";
+  rows.push({name:c[1]||"",vorname:c[0]||"",jahr,grad:c[3]||"",verein:c[4]||"",land:c[5]||"",kat:berechneKategorie(jahr,sex),sex,kom:c[7]||""})}
+ return{rows};
+}
+async function loadFiles(list){files=[];for(const f of list)files.push({name:f.name,text:await f.text()});process()}
+
+// --- Tabellen / Zwischenablage ---
+const TS="border-collapse:collapse;font-family:Segoe UI,Arial,sans-serif;font-size:13px";
+const CS="border:1px solid #999;padding:4px 8px;text-align:left";
+function tableHTML(head,rows,title){
+ return (title?`<p style="font-family:Segoe UI,Arial,sans-serif;font-weight:bold">${esc(title)}</p>`:"")+`<table style="${TS}"><thead><tr>${head.map(h=>`<th style="${CS};background:#e8eef2">${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td style="${CS}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+async function copyRich(html,plain,btn){
+ const old=btn.textContent;let ok=false;
+ try{await navigator.clipboard.write([new ClipboardItem({"text/html":new Blob([html],{type:"text/html"}),"text/plain":new Blob([plain],{type:"text/plain"})})]);ok=true}catch(e){}
+ if(!ok){try{const d=document.createElement("div");d.innerHTML=html;d.style.cssText="position:fixed;left:-9999px;top:0";document.body.appendChild(d);
+  const r=document.createRange();r.selectNodeContents(d);const s=getSelection();s.removeAllRanges();s.addRange(r);ok=document.execCommand("copy");s.removeAllRanges();d.remove()}catch(e){}}
+ btn.textContent=ok?"Kopiert ✓":"Kopieren nicht möglich";setTimeout(()=>btn.textContent=old,2000);
+}
+async function copyText(t,btn){const old=btn.textContent;let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){}
+ if(!ok){const el=btn.closest(".card").querySelector("textarea");if(el){el.select();ok=document.execCommand("copy")}}
+ btn.textContent=ok?"Kopiert ✓":"Kopieren nicht möglich";setTimeout(()=>btn.textContent=old,2000)}
+const FH=["Name","Vorname","Geburtsjahr","Graduierung","Verein","Land","Kategorie","Geschlecht","Kommentar"];
+const frow=t=>[t.name,t.vorname,t.jahr,t.grad,t.verein,t.land,t.kat,t.sex,t.kom];
+function copyFile(i,btn){const p=parsed[i],rows=p.rows.map(frow);
+ copyRich(tableHTML(FH,rows,p.name+" (Typ "+p.typ+")"),[FH,...rows].map(r=>r.join("\t")).join("\n"),btn)}
+
+// --- Verarbeitung ---
+function process(){
+ const sorted=[...files].sort((a,b)=>a.name.localeCompare(b.name));
+ parsed=[];all=[];let fid=1,ign=[];
+ for(const f of sorted){
+  let typ=null;
+  if(f.name.endsWith(".csv")){if(startsWithAny(f.name,cfg.input_types.A.prefixes))typ="A";else if(startsWithAny(f.name,cfg.input_types.B.prefixes))typ="B"}
+  if(!typ){ign.push(f.name);continue}
+  const r=typ=="A"?parseA(f.text):parseB(f.text);
+  parsed.push({name:f.name,typ,fid,rows:r.rows,err:r.err});
+  r.rows.forEach(t=>all.push({...t,fid}));fid++;
+ }
+ all.forEach((t,i)=>t.id=i+1);
+ const nA=parsed.filter(p=>p.typ=="A").length,nB=parsed.length-nA;
+ $("stats").innerHTML=[[files.length,"Dateien gesamt"],[nA+" / "+nB,"Typ A / Typ B"],[ign.length,"ignoriert"],[all.length,"Datensätze"]].map(([b,s])=>`<div class="stat"><b>${b}</b><span>${s}</span></div>`).join("");
+ $("files").innerHTML=parsed.map((p,i)=>`<div class="card"><div class="fh"><span class="badge ${p.typ}">${p.typ}</span><span class="n">${esc(p.name)}</span><span class="hint">file_ID ${p.fid} · ${p.rows.length} Datensätze${p.err?" · "+esc(p.err):""}</span><span class="sp"></span><button class="s" onclick="copyFile(${i},this)">Tabelle kopieren</button></div>
+  <div class="scroll" style="max-height:240px"><table><thead><tr>${FH.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${p.rows.map(t=>`<tr>${frow(t).map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`).join("");
+ $("ignored").textContent=ign.length?"Ignoriert: "+ign.join(", "):"";
+ fillSelects();renderList();$("res").classList.remove("hide");
+}
+function fillSelects(){
+ const m={f_kat:"kat",f_ver:"verein",f_land:"land",f_sex:"sex",f_grad:"grad",f_fid:"fid"};
+ for(const [id,k] of Object.entries(m)){
+  const cur=$(id).value,vals=[...new Set(all.map(t=>t[k]))].filter(v=>v!=="").sort((a,b)=>String(a).localeCompare(String(b),"de",{numeric:true}));
+  $(id).innerHTML='<option value="">alle</option>'+vals.map(v=>`<option>${esc(v)}</option>`).join("");
+  if(vals.map(String).includes(cur))$(id).value=cur;
+ }
+}
+function resetFilters(){["f_q","f_von","f_bis","f_kat","f_ver","f_land","f_sex","f_grad","f_fid"].forEach(i=>$(i).value="");renderList()}
+function view(){
+ const q=$("f_q").value.toLowerCase().trim(),von=parseInt($("f_von").value),bis=parseInt($("f_bis").value);
+ const eq=(id,k,t)=>!$(id).value||String(t[k])===$(id).value;
+ let v=all.filter(t=>eq("f_kat","kat",t)&&eq("f_ver","verein",t)&&eq("f_land","land",t)&&eq("f_sex","sex",t)&&eq("f_grad","grad",t)&&eq("f_fid","fid",t)
+  &&(isNaN(von)||t.jahr>=von)&&(isNaN(bis)||t.jahr<=bis)
+  &&(!q||COLS.some(([k])=>String(t[k]).toLowerCase().includes(q))));
+ if(sortKey)v=[...v].sort((a,b)=>{const x=a[sortKey],y=b[sortKey];return(typeof x=="number"&&typeof y=="number"?x-y:String(x).localeCompare(String(y),"de",{numeric:true}))*sortDir});
+ return v;
+}
+function sortBy(k){if(sortKey===k)sortDir=-sortDir;else{sortKey=k;sortDir=1}renderList()}
+function renderList(){
+ const v=view();
+ $("cnt").textContent=v.length+" von "+all.length+" Datensätzen";
+ $("tbl").innerHTML=`<thead><tr>${COLS.map(([k,h])=>`<th class="srt" onclick="sortBy('${k}')">${h}${sortKey===k?(sortDir>0?" ▲":" ▼"):""}</th>`).join("")}</tr></thead><tbody>${v.map(t=>`<tr>${COLS.map(([k])=>`<td>${esc(t[k])}</td>`).join("")}</tr>`).join("")}</tbody>`;
+}
+function listRows(v){return v.map(t=>COLS.map(([k])=>t[k]))}
+function copyList(btn){const rows=listRows(view()),h=COLS.map(c=>c[1]);
+ copyRich(tableHTML(h,rows,"Teilnehmerliste"),[h,...rows].map(r=>r.join("\t")).join("\n"),btn)}
+function exportCsv(filtered){
+ const rows=listRows(filtered?view():all);
+ saveFile("Teilnehmerliste.csv",HDR_OUT+"\n"+rows.map(r=>r.join(",")).join("\n")+"\n");
+}
+function loadDemo(){
+ files=[
+ {name:"Meldungen_Berlin.csv",text:HDR_A+"\nBauer,Anna,2012,3k,DJK Berlin,GER,U13w-40,w,\nMeier,Tom,2008,1k,JC Nord,GER,U18m-66,m,Gast"},
+ {name:"Anmeldung_Hamburg.csv",text:"Vorname,Nachname,Geburtsjahr,Graduierung,Verein,Land,Geschlecht,Kommentar\nLena,Schmidt,2015,5k,TSV Hamburg,GER,w,\nMax,Koch,1990,1d,JC Elbe,GER,m,\nSara,Weiss,2005,2k,JC Elbe,GER,w,"},
+ {name:"Notizen.txt",text:"egal"},{name:"Meldungen_Wien.csv",text:HDR_A.replace(/,/g,";")+"\nHuber;Jan;2010;4k;UJC Wien;AUT;U15m-50;m;"}];
+ process();
+}
+
+// --- Modus 2 ---
+const ids=["n_name","n_vor","n_jahr","n_grad","n_ver","n_land","n_kat","n_sex","n_kom","n_gew"];
+const ISO="AD:AND,AE:ARE,AF:AFG,AG:ATG,AI:AIA,AL:ALB,AM:ARM,AO:AGO,AQ:ATA,AR:ARG,AS:ASM,AT:AUT,AU:AUS,AW:ABW,AX:ALA,AZ:AZE,BA:BIH,BB:BRB,BD:BGD,BE:BEL,BF:BFA,BG:BGR,BH:BHR,BI:BDI,BJ:BEN,BL:BLM,BM:BMU,BN:BRN,BO:BOL,BQ:BES,BR:BRA,BS:BHS,BT:BTN,BV:BVT,BW:BWA,BY:BLR,BZ:BLZ,CA:CAN,CC:CCK,CD:COD,CF:CAF,CG:COG,CH:CHE,CI:CIV,CK:COK,CL:CHL,CM:CMR,CN:CHN,CO:COL,CR:CRI,CU:CUB,CV:CPV,CW:CUW,CX:CXR,CY:CYP,CZ:CZE,DJ:DJI,DK:DNK,DM:DMA,DO:DOM,DZ:DZA,EC:ECU,EE:EST,EG:EGY,EH:ESH,ER:ERI,ES:ESP,ET:ETH,FI:FIN,FJ:FJI,FK:FLK,FM:FSM,FO:FRO,FR:FRA,GA:GAB,GB:GBR,GD:GRD,GE:GEO,GF:GUF,GG:GGY,GH:GHA,GI:GIB,GL:GRL,GM:GMB,GN:GIN,GP:GLP,GQ:GNQ,GR:GRC,GS:SGS,GT:GTM,GU:GUM,GW:GNB,GY:GUY,HK:HKG,HM:HMD,HN:HND,HR:HRV,HT:HTI,HU:HUN,ID:IDN,IE:IRL,IL:ISR,IM:IMN,IN:IND,IO:IOT,IQ:IRQ,IR:IRN,IS:ISL,IT:ITA,JE:JEY,JM:JAM,JO:JOR,JP:JPN,KE:KEN,KG:KGZ,KH:KHM,KI:KIR,KM:COM,KN:KNA,KP:PRK,KR:KOR,KW:KWT,KY:CYM,KZ:KAZ,LA:LAO,LB:LBN,LC:LCA,LI:LIE,LK:LKA,LR:LBR,LS:LSO,LT:LTU,LU:LUX,LV:LVA,LY:LBY,MA:MAR,MC:MCO,MD:MDA,ME:MNE,MF:MAF,MG:MDG,MH:MHL,MK:MKD,ML:MLI,MM:MMR,MN:MNG,MO:MAC,MP:MNP,MQ:MTQ,MR:MRT,MS:MSR,MT:MLT,MU:MUS,MV:MDV,MW:MWI,MX:MEX,MY:MYS,MZ:MOZ,NA:NAM,NC:NCL,NE:NER,NF:NFK,NG:NGA,NI:NIC,NL:NLD,NO:NOR,NP:NPL,NR:NRU,NU:NIU,NZ:NZL,OM:OMN,PA:PAN,PE:PER,PF:PYF,PG:PNG,PH:PHL,PK:PAK,PL:POL,PM:SPM,PN:PCN,PR:PRI,PS:PSE,PT:PRT,PW:PLW,PY:PRY,QA:QAT,RE:REU,RO:ROU,RS:SRB,RU:RUS,RW:RWA,SA:SAU,SB:SLB,SC:SYC,SD:SDN,SE:SWE,SG:SGP,SH:SHN,SI:SVN,SJ:SJM,SK:SVK,SL:SLE,SM:SMR,SN:SEN,SO:SOM,SR:SUR,SS:SSD,ST:STP,SV:SLV,SX:SXM,SY:SYR,SZ:SWZ,TC:TCA,TD:TCD,TF:ATF,TG:TGO,TH:THA,TJ:TJK,TK:TKL,TL:TLS,TM:TKM,TN:TUN,TO:TON,TR:TUR,TT:TTO,TV:TUV,TW:TWN,TZ:TZA,UA:UKR,UG:UGA,UM:UMI,US:USA,UY:URY,UZ:UZB,VA:VAT,VC:VCT,VE:VEN,VG:VGB,VI:VIR,VN:VNM,VU:VUT,WF:WLF,WS:WSM,YE:YEM,YT:MYT,ZA:ZAF,ZM:ZMB,ZW:ZWE";
+(function(){
+ const dn=(()=>{try{return new Intl.DisplayNames(["de"],{type:"region"})}catch(e){return null}})();
+ const nm=a2=>{try{return dn?dn.of(a2):a2}catch(e){return a2}};
+ const all=ISO.split(",").map(p=>{const [a2,a3]=p.split(":");return{a3,n:nm(a2)}});
+ all.push({a3:"GER",n:nm("DE")});
+ all.sort((x,y)=>x.n.localeCompare(y.n,"de"));
+ const SP=["GER","AUT","BEL","CZE","DNK","FRA","LUX","NLD","POL","CHE"];
+ const opt=c=>`<option value="${c.a3}">${c.a3} – ${esc(c.n)}</option>`;
+ $("n_land").innerHTML='<optgroup label="Häufig (Turnier)">'+SP.map(s=>opt(all.find(c=>c.a3==s))).join("")+'</optgroup><optgroup label="Alle Länder (ISO 3166-1 Alpha-3)">'+all.map(opt).join("")+'</optgroup>';
+ $("n_land").value="GER";
+})();
+function autoKat(){const j=parseInt($("n_jahr").value);if(!j){$("newmsg").textContent="Bitte zuerst Geburtsjahr eingeben.";return}const gw=$("n_gew").value.replace(/kg/ig,"").trim();$("n_kat").value=berechneKategorie(j,$("n_sex").value,/^[1-9]\d*$/.test(gw)?"-"+gw:"");$("newmsg").textContent="Kategorie berechnet."+(gw?"":" Gewichtsklasse ggf. anpassen.")}
+function clearForm(){ids.forEach(i=>{if(i!="n_land"&&i!="n_sex"){$(i).value="";$(i).classList.remove("bad")}});beltHint();verReset();$("newmsg").textContent="Datensatz verworfen."}
+const HDR_B="Vorname,Nachname,Geburtsjahr,Graduierung,Verein,Land,Geschlecht,Kommentar";
+const ntype=()=>$("n_typ").value;
+const nprefix=()=>$("pre").value||(ntype()=="A"?"Meldungen_":"Anmeldung_");
+const recRow=(r,B)=>B?[r.vorname,r.name,r.jahr,r.grad,r.verein,r.land,r.sex,r.kom]:[r.name,r.vorname,r.jahr,r.grad,r.verein,r.land,r.kat,r.sex,r.kom];
+const BELT_DAN=["","Schwarz","Schwarz","Schwarz","Schwarz","Schwarz","Rot-Weiß","Rot-Weiß","Rot-Weiß","Rot","Rot"];
+const BELT_KYU=["","Braun","Blau","Grün","Orange-Grün","Orange","Gelb-Orange","Gelb","Weiß-Gelb","Weiß"];
+function parseBelt(s){
+ const m=String(s).match(/\d+/);if(!m)return null;
+ const n=+m[0],kyu=/k/i.test(s);
+ if(n<1||n>(kyu?9:10))return null;
+ return{txt:n+(kyu?"k":"d"),name:n+". "+(kyu?"Kyu":"Dan"),color:(kyu?BELT_KYU:BELT_DAN)[n]};
+}
+(function(){
+ let h='<option value="">– wählen –</option><optgroup label="Kyu (Schülergrade)">';
+ for(let n=9;n>=1;n--)h+=`<option value="${n}k">${n}k – ${n}. Kyu · ${BELT_KYU[n]}</option>`;
+ h+='</optgroup><optgroup label="Dan (Meistergrade)">';
+ for(let n=1;n<=10;n++)h+=`<option value="${n}d">${n}d – ${n}. Dan · ${BELT_DAN[n]}</option>`;
+ $("n_grad").innerHTML=h+"</optgroup>";
+})();
+let yrBase=0;
+function yrAge(y){const a=Math.max(0,new Date().getFullYear()-y),ac=cfg.kids_classes.find(c=>a<=c.max_age);return "Jahrgang "+y+" · Alter "+a+" · "+(ac?ac.name:"Erwachsene")}
+function yrRender(){
+ const cur=new Date().getFullYear(),sel=parseInt($("n_jahr").value);
+ let h=`<div class="nav"><button type="button" onclick="yrPage(-12)">‹</button><span>${yrBase}–${yrBase+11}</span><button type="button" onclick="yrPage(12)">›</button></div><div class="ys">`;
+ for(let y=yrBase;y<yrBase+12;y++)h+=`<button type="button" class="${y==sel?"sel":""} ${y==cur?"now":""}" ${y>cur||y<1900?"disabled":""} onclick="yrPick(${y})" onmouseover="$('yrinfo').textContent=yrAge(${y})">${y}</button>`;
+ $("yrpop").innerHTML=h+`</div><div class="info" id="yrinfo">${isNaN(sel)?"":yrAge(sel)}</div>`;
+}
+function yrPage(d){yrBase+=d;yrRender()}
+function yrPick(y){$("n_jahr").value=y;$("n_jahr").classList.remove("bad");$("yrpop").classList.add("hide")}
+function yrToggle(){const p=$("yrpop");if(p.classList.contains("hide")){const s=parseInt($("n_jahr").value);yrBase=(s>=1900?s:new Date().getFullYear()-12)-5;yrRender();p.classList.remove("hide")}else p.classList.add("hide")}
+document.addEventListener("mousedown",e=>{const w=$("yrwrap");if(w&&!w.contains(e.target))$("yrpop").classList.add("hide")});
+let verTouched=false;
+const verDefault=()=>$("suf").value.trim();
+function sufChange(){if(!verTouched)$("n_ver").value=verDefault();renderNew()}
+function verEdit(){const v=$("n_ver").value;verTouched=v!==""&&v!==verDefault()}
+function verReset(){verTouched=false;$("n_ver").value=verDefault()}
+verReset();
+function beltHint(){const v=$("n_grad").value.trim(),b=parseBelt(v);$("belt").textContent=!v?"":b?"= "+b.name+" · "+b.color:"ungültig"}
+function saveRec(){
+ const g=i=>$(i).value.replace(/,/g," ").trim(),B=ntype()=="B",err=[],bad=new Set(),yr=new Date().getFullYear();
+ const chk=(id,ok,msg)=>{if(!ok){err.push(msg);bad.add(id)}};
+ const r={name:g("n_name"),vorname:g("n_vor"),jahr:g("n_jahr"),grad:g("n_grad"),verein:g("n_ver"),land:g("n_land").toUpperCase(),kat:g("n_kat"),sex:g("n_sex"),kom:g("n_kom")};
+ chk("n_name",r.name&&r.name.length<=50,"Nachname: Pflichtfeld, max. 50 Zeichen");
+ chk("n_vor",r.vorname&&r.vorname.length<=50,"Vorname: Pflichtfeld, max. 50 Zeichen");
+ const jahr=/^\d{4}$/.test(r.jahr)?+r.jahr:0;
+ chk("n_jahr",jahr>=1900&&jahr<=yr,"Geburtsjahr: 4-stellig, 1900–"+yr);
+ const belt=parseBelt(r.grad);
+ chk("n_grad",!!belt,"Gürtelgrad: Zahl mit k (Kyu 1–9) oder d (Dan 1–10)");
+ chk("n_ver",r.verein&&r.verein.length<=100,"Verein: Pflichtfeld, max. 100 Zeichen");
+ chk("n_land",/^[A-Z]{3}$/.test(r.land),"Land: ISO-Alpha-3-Code (z. B. GER)");
+ const gew=g("n_gew").replace(/kg/ig,"").trim();
+ if(!B&&gew)chk("n_gew",/^[1-9]\d*$/.test(gew),"Gewicht: positive Ganzzahl in kg");
+ chk("n_kom",r.kom.length<=200,"Kommentar: max. 200 Zeichen");
+ ids.forEach(i=>$(i).classList.toggle("bad",bad.has(i)));
+ if(err.length){$("newmsg").textContent="Bitte korrigieren: "+err.join("; ");return}
+ r.jahr=jahr;r.grad=belt.txt;
+ const calc=berechneKategorie(jahr,r.sex,!B&&gew?"-"+gew:"");
+ if(B||!r.kat)r.kat=calc;
+ records.push(r);ids.forEach(i=>{if(i!="n_land"&&i!="n_sex")$(i).value=""});beltHint();verReset();
+ $("newmsg").textContent=B?"Datensatz gespeichert. Kategorie wird beim Einlesen berechnet: "+calc:"Datensatz gespeichert.";renderNew();
+}
+function renderNew(){
+ const B=ntype()=="B";
+ $("w_kat").classList.toggle("hide",B);$("w_gew").classList.toggle("hide",B);$("b_auto").classList.toggle("hide",B);
+ if(B)$("w_name").before($("w_vor"));else $("w_vor").before($("w_name"));
+ $("w_name").querySelector("label").textContent=B?"Nachname (Bauer)":"Name (Bauer)";
+ const pf=(B?cfg.input_types.B:cfg.input_types.A).prefixes,sel=$("pre"),key=ntype()+pf.join("|");
+ if(sel.dataset.t!==key){const cur=sel.value;sel.innerHTML=pf.map(p=>`<option>${esc(p)}</option>`).join("");if(pf.includes(cur))sel.value=cur;sel.dataset.t=key}
+ $("fname").textContent="· "+nprefix()+$("suf").value+".csv";
+ $("newout").value=(B?HDR_B:HDR_A)+"\n"+records.map(r=>recRow(r,B).join(",")).join("\n");
+}
+function saveNew(){saveFile(nprefix()+$("suf").value+".csv",$("newout").value+"\n",$("newmsg"))}
+</script>
+</body>
+</html>
